@@ -7,6 +7,26 @@ import About from './AboutComponent';
 import { View,Platform,Image,StyleSheet,ScrollView,Text} from 'react-native';
 import {createStackNavigator,createDrawerNavigator,DrawerItems,SafeAreaView} from 'react-navigation';
 import {Icon} from 'react-native-elements';
+import { connect } from 'react-redux';
+import {fetchComments,fetchDishes,fetchLeaders,fetchPromos} from '../redux/ActionCreators';
+import Reservation from './ReservationComponent';
+import Favorites from './FavoriteComponent';
+
+const mapStateToProps = state => {
+  return {
+    dishes: state.dishes,
+    comments: state.comments,
+    promotions: state.promotions,
+    leaders: state.leaders
+  }
+}
+
+  const mapDispatchToProps = dispatch => ({
+    fetchComments: ()=> dispatch(fetchComments()),
+    fetchDishes: ()=> dispatch(fetchDishes()),
+    fetchLeaders:()=> dispatch(fetchLeaders()),
+    fetchPromos:()=> dispatch(fetchPromos())
+  });
 
 const MenuNavigator = createStackNavigator({
   Menu: { screen: Menu,
@@ -77,6 +97,41 @@ const ContactusNavigator = createStackNavigator({
   })
 });
 
+const ReservationNavigator = createStackNavigator({
+  Reservation: { screen: Reservation }
+}, {
+  navigationOptions: ({ navigation }) => ({
+    headerStyle: {
+        backgroundColor: "#512DA8"
+    },
+    headerTitleStyle: {
+        color: "#fff"            
+    },
+    headerTintColor: "#fff",
+    headerLeft: <Icon name="menu" size={24}
+      iconStyle={{ color: 'white' }} 
+      onPress={ () => navigation.navigate('DrawerToggle') } />    
+  })
+});
+
+const FavoritesNavigator = createStackNavigator({
+  Favorites: { screen: Favorites }
+}, {
+  navigationOptions: ({ navigation }) => ({
+    headerStyle: {
+        backgroundColor: "#512DA8"
+    },
+    headerTitleStyle: {
+        color: "#fff"            
+    },
+    headerTintColor: "#fff",
+    headerLeft: <Icon name="menu" size={24}
+      iconStyle={{ color: 'white' }} 
+      onPress={ () => navigation.navigate('DrawerToggle') } />    
+  })
+});
+
+
 const CustomDrawerContentComponent = (props) => (
   <ScrollView>
     <SafeAreaView style={styles.container} forceInset={{ top: 'always', horizontal: 'never' }}>
@@ -104,6 +159,7 @@ const MainNavigator = createDrawerNavigator({
       )
     }
   },
+
   Menu: {
     screen: MenuNavigator,
     navigationOptions:{
@@ -114,6 +170,7 @@ const MainNavigator = createDrawerNavigator({
       )
     }
   },
+
   Contact: {
     screen: ContactusNavigator,
     navigationOptions:{
@@ -124,6 +181,7 @@ const MainNavigator = createDrawerNavigator({
       )
     }
   },
+
   About: {
     screen: AboutusNavigator,
     navigationOptions:{
@@ -133,13 +191,55 @@ const MainNavigator = createDrawerNavigator({
         <Icon name='info-circle' type='font-awesome' size={24} color={tintColor} />
       )
     }
+  },
+
+
+Reservation:
+{ screen: ReservationNavigator,
+  navigationOptions: {
+    title: 'Reserve Table',
+    drawerLabel: 'Reserve Table',
+    drawerIcon: ({ tintColor, focused }) => (
+      <Icon
+        name='cutlery'
+        type='font-awesome'            
+        size={24}
+        iconStyle={{ color: tintColor }}
+      />
+    ),
   }
-},{
+},
+
+Favorites:
+{ screen: FavoritesNavigator,
+  navigationOptions: {
+    title: 'My Favorites',
+    drawerLabel: 'My Favorites',
+    drawerIcon: ({ tintColor, focused }) => (
+      <Icon
+        name='heart'
+        type='font-awesome'            
+        size={24}
+        iconStyle={{ color: tintColor }}
+      />
+    ),
+  }
+}
+
+},
+{
   drawerBackgroundColor: '#D1C4E9',
   contentComponent: CustomDrawerContentComponent
 });
 
 class Main extends Component {
+
+  componentDidMount(){
+    this.props.fetchDishes();
+    this.props.fetchComments();
+    this.props.fetchLeaders();
+    this.props.fetchPromos();
+  }
 
   render() {
  
@@ -175,4 +275,4 @@ const styles = StyleSheet.create({
   }
 });
 
-export default Main;
+export default connect(mapStateToProps,mapDispatchToProps)(Main);

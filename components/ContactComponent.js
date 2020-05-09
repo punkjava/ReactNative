@@ -1,9 +1,6 @@
 import React,{Component} from 'react';
 import {ScrollView, Text, View} from 'react-native';
 import {Card} from 'react-native-elements';
-import {DISHES} from '../shared/dishes';
-import {LEADERS} from '../shared/leaders';
-import {PROMOTIONS} from '../shared/promotions';
 
 class Contact extends Component{
 
