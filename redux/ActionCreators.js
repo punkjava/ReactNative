@@ -242,3 +242,8 @@ export const addComment = (comments) => ({
 //     })
 //     .catch(error => { console.log('Post comments : ', error.message) });
 // }
+
+export const deleteFavorite = (dishId) => ({
+    type: ActionTypes.DELETE_FAVORITE,
+    payload:dishId
+})
