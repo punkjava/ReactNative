@@ -1,10 +1,10 @@
 import React, { Component } from 'react';
-import { Text, View, ScrollView, StyleSheet, Picker,Modal ,Switch, Button, Alert } from 'react-native';
-import { Card } from 'react-native-elements';
+import { Text, View, ScrollView, StyleSheet, Picker ,Switch, Button, Alert } from 'react-native';
 import DatePicker from 'react-native-datepicker';
 import * as Animatable from "react-native-animatable";
 import * as Permissions from 'expo-permissions';
 import { Notifications } from 'expo';
+import * as Calendar from 'expo-calendar';
 
 class Reservation extends Component {
 
@@ -14,8 +14,7 @@ class Reservation extends Component {
         this.state = {
             guests: 1,
             smoking: false,
-            date: '',
-            showModal: false
+            date: ''
         }
     }
 
@@ -23,9 +22,7 @@ class Reservation extends Component {
         title: 'Reserve Table',
     };
 
-    // toggleModal() {
-    //     this.setState({showModal: !this.state.showModal});
-    // }
+
 
     handleReservation() {
         console.log(JSON.stringify(this.state));
@@ -44,12 +41,13 @@ class Reservation extends Component {
                     text: 'OK',
                     onPress: ()=> {
                         this.presentLocalNotification(this.state.date);
+                        this.addReservationToCalendar(this.state.date);
                         this.resetForm();
                     }
                 }
             ]
         )
-        // this.toggleModal();
+       
     }
 
     resetForm(){
@@ -88,6 +86,54 @@ class Reservation extends Component {
 
     }
 
+    async obtainDefaultCalendarId() {
+        let calendar = null;
+        if (Platform.OS === 'ios') {
+          // ios: get default calendar
+          calendar = await Calendar.getDefaultCalendarAsync();
+        } else {
+          // Android: find calendar with `isPrimary` == true
+          const calendars = await Calendar.getCalendarsAsync();
+          calendar = (calendars) ?
+            (calendars.find(cal => cal.isPrimary) || calendars[0])
+            : null;
+        }
+        return (calendar) ? calendar.id.toString() : null;
+      }
+
+    //   async getDefaultCalendarSource() {
+    //     const calendars = await Calendar.getCalendarsAsync();
+    //     const defaultCalendars = calendars.filter(each => each.source.name === 'Default');
+    //     return defaultCalendars[0].source;
+    //   }
+
+      async obtainCalendarPermission() {
+        let permission = await Permissions.getAsync(Permissions.CALENDAR);
+        if (permission.status !== 'granted') {
+          permission = await Permissions.askAsync(Permissions.CALENDAR);
+          if (permission.status !== 'granted') {
+            Alert.alert('Permission not granted to access the calendar');
+          }
+        }
+        return permission;
+      }
+
+    async addReservationToCalendar(date) {
+        await this.obtainCalendarPermission();
+        CalendarId = this.obtainDefaultCalendarId();
+        const startDate = new Date(Date.parse(date));
+        const endDate = new Date(Date.parse(date) + (2 * 60 * 60 * 1000)); // 2 hours
+        Calendar.createEventAsync(CalendarId, {
+            title:'Con Fusion Table Reservation',
+            startDate:startDate,
+            endDate: endDate,
+            timeZone: 'Asia/Hong_Kong',
+            location: '121, Clear Water Bay Road, Clear Water Bay, Kowloon, Hong Kong'  
+        });
+        Alert.alert('Reservation has been added to your calendar');
+    }
+          
+
     render(){
         return(
             <Animatable.View animation="zoomIn" duration={2000}>
@@ -111,7 +157,7 @@ class Reservation extends Component {
                 <Switch
                     style={styles.formItem}
                     value={this.state.smoking}
-                    onTintColor='#512DA8'
+                    trackColor='#512DA8'
                     onValueChange={(value) => this.setState({smoking: value})}>
                 </Switch>
                 </View>
